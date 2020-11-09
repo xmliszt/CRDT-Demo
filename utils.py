@@ -15,6 +15,8 @@ def get_operation():
   try:
     o = choice.lower()[0]
     n = int(choice.strip(" ")[1:])
+    if o not in ['i', 'd']:
+      raise Exception
     return (o, n)
   except Exception:
     print("Invalid operation format!")
@@ -29,6 +31,9 @@ def get_number_of_concurrent_operations(peers):
     sys.exit()
   try:
     _n = int(_n)
+    if _n < 1:
+      print("Must have at least 1 operation!")
+      return False
     return _n
   except ValueError:
     print("Must be integer!")

@@ -17,7 +17,11 @@ def debug_log(msg):
 if __name__ == "__main__":
   while True:
     n = input("Enter the number of peers in the P2P network: ")
-    n = int(n)
+    try:
+      n = int(n)
+    except ValueError:
+      print("Must be integer!")
+      continue
     if n < 2: 
       print("Should have at least 2 peers")
       continue
