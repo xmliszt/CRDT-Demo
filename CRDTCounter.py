@@ -15,10 +15,16 @@ def debug_log(msg):
     print(f"[{datetime.now()}]: {msg}")
 
 if __name__ == "__main__":
-  n = input("Enter the number of peers in the P2P network: ")
-  n = int(n)
-  if n < 2: raise Exception("Should have at least 2 peers")
-  elif n > 50: raise Exception("Please demo using less than 50 peers for message displaying purposes!")
+  while True:
+    n = input("Enter the number of peers in the P2P network: ")
+    n = int(n)
+    if n < 2: 
+      print("Should have at least 2 peers")
+      continue
+    elif n > 50: 
+      print("Please demo using less than 50 peers for message displaying purposes!")
+      continue
+    break
   peers = []  # To input all the peers
   for i in range(n):
     p = Peer(HOST, PORT_INIT+i+1)
@@ -49,8 +55,19 @@ if __name__ == "__main__":
     if not _n:
       continue
     for _ in range(_n):
-      peer = get_peer(n, peers)
-      o, val = get_operation()
+      while True:
+        peer = get_peer(n, peers)
+        if not peer:
+          continue
+        break
+      while True:
+        result = get_operation()
+        if not result:
+          continue
+        o = result[0]
+        val = result[1]
+        break
+
       operations.append((o, val))
       active_peers.append(peer)
 

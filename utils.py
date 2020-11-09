@@ -12,9 +12,13 @@ def get_operation():
   Dn: Decrement counter by n, n is a custom integer
   ''')
   choice = input("Your choice of operation: ")
-  o = choice.lower()[0]
-  n = int(choice.strip(" ")[1:])
-  return (o, n)
+  try:
+    o = choice.lower()[0]
+    n = int(choice.strip(" ")[1:])
+    return (o, n)
+  except Exception:
+    print("Invalid operation format!")
+    return False
 
 def get_number_of_concurrent_operations(peers):
   _n = input(f"Enter the number of concurrent operations you want to perform or <Enter> to quit: ")
@@ -32,7 +36,16 @@ def get_number_of_concurrent_operations(peers):
 
 def get_peer(n, peers):
   _id = input(f"Enter the peer ID to be controlled [1 - {n}]: ")
-  return peers[int(_id)-1]
+  try:
+    _id = int(_id)
+    if 1 <= _id <= n:
+      return peers[_id-1]
+    else:
+      print("Peer ID out of range!")
+      return False
+  except ValueError:
+    print("Must be integer!")
+    return False
 
 def print_peers_and_counter(peers):
   print("")
