@@ -1,6 +1,7 @@
 import commands
 from time import sleep
 from random import randint
+import sys
 
 def get_operation():
   print('''
@@ -16,7 +17,12 @@ def get_operation():
   return (o, n)
 
 def get_number_of_concurrent_operations(peers):
-  _n = input(f"Enter the number of concurrent operations you want to perform: ")
+  _n = input(f"Enter the number of concurrent operations you want to perform or <Enter> to quit: ")
+  if _n == "":
+    print("Shutdown...")
+    for p in peers:
+      p.stop()
+    sys.exit()
   try:
     _n = int(_n)
     return _n
