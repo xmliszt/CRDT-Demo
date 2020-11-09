@@ -1,5 +1,6 @@
 import commands
 from time import sleep
+from random import randint
 
 def get_operation():
   print('''
@@ -33,10 +34,10 @@ def print_peers_and_counter(peers):
     print(f"Peer ID: {idx+1}\tCounter value: {p.counter}")
   print("")
 
-def thread_send_msg(peer, operations, delay=100):
+def thread_send_msg(peer, delay, operations):
   while len(operations) > 0:
     op = operations.pop()
-    sleep(delay/1000)
+    sleep(randint(1, delay)/1000) # simulate various network delay
     operation = op[0]
     val = op[1]
     if operation == 'i':

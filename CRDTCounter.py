@@ -1,3 +1,4 @@
+from time import sleep
 from Peer import Peer
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
@@ -7,7 +8,7 @@ from utils import get_operation, get_peer, print_peers_and_counter, get_number_o
 DEBUG = 0 # 1 to on debug, 0 to off debug
 HOST = '0.0.0.0'
 PORT_INIT = 8000
-DELAY = 100 # Simulate internet delay from sender to receiver in ms
+DELAY = 1000 # Simulate internet delay from sender to receiver in ms
 
 def debug_log(msg):
   if DEBUG:
@@ -38,6 +39,8 @@ if __name__ == "__main__":
   print("Each peer has a counter value initialized to be 0")
 
   while True:
+
+    sleep(DELAY/1000)
     print_peers_and_counter(peers)
 
     _n = get_number_of_concurrent_operations(peers)
@@ -53,8 +56,7 @@ if __name__ == "__main__":
 
     with ThreadPoolExecutor(max_workers=_n) as worker:
       for p in active_peers:
-        worker.submit(partial(thread_send_msg, p), operations)
-    
+        worker.submit(partial(thread_send_msg, p, DELAY), operations)
     
 
 
