@@ -1,4 +1,3 @@
-import commands
 from time import sleep
 from random import randint
 import sys
@@ -65,19 +64,6 @@ def print_peers_and_counter(peers):
     print("")
 
 
-def thread_send_msg(peer, delay, operations):
-    while len(operations) > 0:
-        op = operations.pop()
-        sleep(randint(1, delay) / 1000)  # simulate various network delay
-        operation = op[0]
-        val = op[1]
-        if operation == 'i':
-            peer.send_to_nodes(
-                f"Update >>> {commands.INCREMENT}{val}{commands.INCREMENT}",
-                exclude=peer.nodes_inbound)
-            peer.counter += val
-        elif operation == 'm':
-            peer.send_to_nodes(
-                f"Update >>> {commands.MULTIPLE}{val}{commands.MULTIPLE}",
-                exclude=peer.nodes_inbound)
-            peer.counter *= val
+def thread_send_msg(peer, delay, counter_val):
+    sleep(randint(1, delay) / 1000)  # simulate various network delay
+    peer.send_to_nodes(str(counter_val), exclude=peer.nodes_inbound)
