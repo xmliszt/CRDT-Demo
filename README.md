@@ -1,5 +1,5 @@
 # CRDT-Demo
-50.012 Network Project - CRDT Demo
+50.012 Network Project - Simple counter via Operation-based CRDT demo
 
 ## How to Run
 
