@@ -73,7 +73,7 @@ def print_peers_and_counter(peers):
 
 def thread_send_msg(peer, delay, operations):
     while len(operations) > 0:
-        op = operations.pop()
+        op = operations.pop(0)
         sleep(randint(1, delay) / 1000)  # simulate various network delay
         operation = op[0]
         val = op[1]
@@ -100,3 +100,9 @@ def merge_operations(operations, data):
     elif commands.DIVIDE in data:
         operations.insert(0, data)
     return operations
+
+
+def print_all_counters(peers):
+    print("|{:^20}|{:^20}|".format("Peer IP Address", "Counter Value"))
+    for p in peers:
+        print("|{:^20}|{:^20}|".format(f"{p.host}:{p.port}", p.counter))

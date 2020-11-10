@@ -40,7 +40,7 @@ class Peer(Node):
                     n = int(c.split(commands.DIVIDE)[1])
                     self.__counter /= n
                 print(
-                    f"Peer : {self.host}:{self.port}\tCounter value {round(tmp, 2)} -> {round(self.__counter, 2)} by\t{c}"
+                    f"Peer : {self.host}:{self.port}\tCounter value {round(tmp, 2):<5} -> {round(self.__counter, 2):<5} by {c}"
                 )
 
     def stop(self):
