@@ -1,6 +1,6 @@
 # CRDT-Demo
 
-50.012 Network Project - Operation Based CRDT Demo
+50.012 Network Project - operation-based CRDT Demo
 
 ## How to Run
 
