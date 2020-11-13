@@ -42,6 +42,7 @@ if __name__ == "__main__":
 
     # set up p2p connection
     for i, p in enumerate(peers):
+        sleep(0.5)
         for idx in range(n):
             if i != idx:
                 p.connect_with_node(HOST, PORT_INIT + idx + 1)
