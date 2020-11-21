@@ -1,19 +1,20 @@
+import threading
 from p2pnetwork.node import Node
 import commands
 import time
-from threading import Thread
+import threading
 from utils import merge_operations
 
 
 class Peer(Node):
     def __init__(self, host, port):
         super(Peer, self).__init__(host, port, None)
-        self.__counter = 0
+        self.__counter = 1
         self.operations = []
         self.__shutdown = False
-        self.__worker = Thread(target=self._check_operations_update)
+        self.__worker = threading.Thread(target=self._check_operations_update)
         self.__worker.start()
-        print(f"Node : {host}:{port} started ")
+        # print(f"Node : {host}:{port} started ")
 
     # when receiving commands from other peers
     def node_message(self, node, data):
@@ -45,6 +46,8 @@ class Peer(Node):
 
     def stop(self):
         """Stop this node and terminate all the connected nodes."""
+        self.shutdown = True
+        time.sleep(0.5)
         self.__worker.join()
         self.node_request_to_stop()
         self.terminate_flag.set()
