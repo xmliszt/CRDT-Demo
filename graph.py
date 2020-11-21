@@ -160,7 +160,8 @@ if __name__ == "__main__":
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(peers_x, peers_y, 'go-', alpha=0.5)
     ax.set_title(
-        "Time Taken to Reach Eventual Consistency (ms) agains Number of Peers")
+        "Time Taken to Reach Eventual Consistency (ms) against Number of Peers"
+    )
     ax.set_xlabel("Number of peers")
     ax.set_ylabel("Time Taken to reach eventual consistency (ms)")
 
