@@ -26,7 +26,7 @@ class Peer(Node):
                 break
             time.sleep(1)
             while len(self.operations) > 0:
-                tmp = self.__counter
+                # tmp = self.__counter
                 c = self.operations.pop(0)
                 if commands.INCREMENT in c:
                     n = int(c.split(commands.INCREMENT)[1])
@@ -40,9 +40,9 @@ class Peer(Node):
                 elif commands.DIVIDE in c:
                     n = int(c.split(commands.DIVIDE)[1])
                     self.__counter /= n
-                print(
-                    f"Peer : {self.host}:{self.port}\tCounter value {round(tmp, 2):<5} -> {round(self.__counter, 2):<5} by {c}"
-                )
+                # print(
+                #     f"Peer : {self.host}:{self.port}\tCounter value {round(tmp, 2):<5} -> {round(self.__counter, 2):<5} by {c}"
+                # )
 
     def stop(self):
         """Stop this node and terminate all the connected nodes."""

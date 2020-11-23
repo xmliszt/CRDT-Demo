@@ -13,6 +13,22 @@ import json
 import csv
 import resource
 import sys
+import argparse
+
+parser = argparse.ArgumentParser(
+    description="Run analysis for P2P Operation-based CRDT experiments")
+parser.add_argument('-s',
+                    '--start',
+                    type=int,
+                    default=2,
+                    help="Start number of peers")
+parser.add_argument('-m',
+                    '--max',
+                    type=int,
+                    default=30,
+                    help="Maximum number of peers")
+
+args = parser.parse_args()
 
 # Create N nodes
 # Inter-connect all nodes
@@ -26,18 +42,16 @@ import sys
 # Set hard limit for file descriptor
 resource.setrlimit(resource.RLIMIT_NOFILE, (12288, 12288))
 
-FROM_PEERS = int(sys.argv[1])
-MAX_PEERS = int(sys.argv[2])
+FROM_PEERS = args.start
+MAX_PEERS = args.max
 INIT_PORT = 8000
 HOST = "0.0.0.0"
 TERMINATION_INIT_TIME = 8  # seconds
 PEER_STOPPING_TIME = 8  # seconds
-MONITOR_TIMEOUT = 3  # seconds
+MONITOR_TIMEOUT = 1  # seconds
 
 peers_x = []
-peers_y = []
-concurrent_operations_x = []
-concurrent_operations_y = []
+peers_y = {}
 
 
 def dprint(s):
@@ -75,11 +89,11 @@ def is_same(l):
     return True
 
 
-def check_counters(peers):
+def check_counters(n, peers):
     start_time = time() * 1000
     _timeout_count = 0
     while True:
-        sleep(0.5)
+        sleep(0.2)
         counts = list(map(lambda x: x.counter, peers))
         if is_same(counts):
             sleep(MONITOR_TIMEOUT)  # timeout
@@ -90,10 +104,20 @@ def check_counters(peers):
     end_time = time() * 1000
     time_taken = (end_time - start_time -
                   _timeout_count * MONITOR_TIMEOUT * 1000)
-    peers_y.append(time_taken)
+    peers_y[n] = time_taken
     dprint(
         f"Took {time_taken} ms. Monitor closed. Universal counter value: {counts[0]}"
     )
+
+
+def flatten_results(peers_x, peers_y):
+    results_y = []
+    results_x = []
+    for k, v in peers_y.items():
+        if k in peers_x:
+            results_y.append(v)
+            results_x.append(k)
+    return results_x, results_y
 
 
 if __name__ == "__main__":
@@ -121,8 +145,8 @@ if __name__ == "__main__":
             for idx in range(number_of_peers):
                 if i != idx:
                     p.connect_with_node(HOST, tmp_init_port + idx)
-                    dprint(
-                        f"Peer {p.port} connected with {tmp_init_port + idx}")
+                    # dprint(
+                    #     f"Peer {p.port} connected with {tmp_init_port + idx}")
         dprint(f"Interconnection for {number_of_peers} peers is done!")
 
         # Performing operations
@@ -135,7 +159,8 @@ if __name__ == "__main__":
 
             # Start Monitoring Counters
         dprint(f"Start monitoring the counters...")
-        _monitor = Thread(target=partial(check_counters, peers))
+        _monitor = Thread(
+            target=partial(check_counters, number_of_peers, peers))
         _monitor.start()
         _futures = []
         dprint(f"Sending concurrent operations...")
@@ -144,9 +169,10 @@ if __name__ == "__main__":
                 _futures.append(
                     executor.submit(partial(peer_send_msg, peer), operations))
 
-        sleep(8)
         for _future in _futures:
             _future.result()
+
+        sleep(5)
 
         # Tear Down
         dprint(f"Closing peers...")
@@ -156,14 +182,7 @@ if __name__ == "__main__":
         sleep(TERMINATION_INIT_TIME +
               PEER_STOPPING_TIME * max(1, number_of_peers // 10))
 
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    ax.plot(peers_x, peers_y, 'go-', alpha=0.5)
-    ax.set_title(
-        "Time Taken to Reach Eventual Consistency (ms) against Number of Peers"
-    )
-    ax.set_xlabel("Number of peers")
-    ax.set_ylabel("Time Taken to reach eventual consistency (ms)")
+    _x, _y = flatten_results(peers_x, peers_y)
 
     if not os.path.exists("figures"):
         os.mkdir("figures")
@@ -188,18 +207,26 @@ if __name__ == "__main__":
         csv_path = os.path.join(
             "csv", f"peer_{FROM_PEERS}-{MAX_PEERS}_{_counter}.csv")
 
-    plt.savefig(figure_path, format='png')
-
     with open(raw_path, 'w', encoding='utf-8') as fp:
-        json.dump({"peer_x": peers_x, "peer_y": peers_y}, fp)
+        json.dump({"peer_x": _x, "peer_y": _y}, fp)
 
     with open(csv_path, 'w', encoding='utf-8', newline='') as fh:
         writer = csv.writer(fh)
         writer.writerow([
             "Number of Peers", "Time Taken to Reach Eventual Consistency (ms)"
         ])
-        for _each in list(zip(peers_x, peers_y)):
+        for _each in list(zip(_x, _y)):
             writer.writerow(list(_each))
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(_x, _y, 'go-', alpha=0.5)
+    ax.set_title(
+        "Time Taken to Reach Eventual Consistency (ms) against Number of Peers"
+    )
+    ax.set_xlabel("Number of peers")
+    ax.set_ylabel("Time Taken to reach eventual consistency (ms)")
+    plt.savefig(figure_path, format='png')
 
     dprint(
         f"Experiment peer_{FROM_PEERS}-{MAX_PEERS}_{_counter} is completed!")
