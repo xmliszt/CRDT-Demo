@@ -62,11 +62,13 @@ class CRDTPeer(Node):
     def display(self):
         finalString = display_final_string(self.__currentText)
         print(f"final {self.__nodeID} with {finalString} \n")
+        return finalString
 
     def _check_operation_update(self):
         while True:
 
-            time.sleep(round(random.uniform(0,5), 1))
+            time.sleep(round(random.uniform(0,5), 1)/1000)
+            # sleep has been inserted to before broadcasting operation
 
             if self.shutdown:
                 break
@@ -107,6 +109,7 @@ class CRDTPeer(Node):
                         editValue = (i+1)*step + self.__currentText[index+1][1]
                         edit = (setcommands.INSERT, editCharacter, editValue, self.__nodeID)
                         self.__currentText, self.__history = insert_operation(self.__currentText, edit, self.__history) # update local copy
+                        #time.sleep(round(random.uniform(0,5), 1)/1000)
                         self.send_to_nodes(self, edit) # broadcast to all connected nodes
                 
                 if self.__debug:
@@ -134,6 +137,7 @@ class CRDTPeer(Node):
                                 print(f"{self.__nodeID} is deleting {self.__currentText[position+2]}")
                             edit = (setcommands.DELETE, self.__currentText[position+2][0], self.__currentText[position+2][1], self.__currentText[position+2][2])
                             self.__currentText, self.__history = delete_operation(self.__currentText, edit, self.__history) # update local copy
+                            #time.sleep(round(random.uniform(0,5), 1)/1000)
                             self.send_to_nodes(self, edit) # broadcast to all connected nodes
                         if self.__debug:
                             print(f"{self.__nodeID} has completed deletion normally. Updated state {self.__currentText} \n")
