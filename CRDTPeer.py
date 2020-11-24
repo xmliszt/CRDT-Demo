@@ -67,7 +67,7 @@ class CRDTPeer(Node):
     def _check_operation_update(self):
         while True:
 
-            time.sleep(round(random.uniform(0,5), 1)/1000)
+            time.sleep(round(random.uniform(0,3), 1)/10)
             # sleep has been inserted to before broadcasting operation
 
             if self.shutdown:
@@ -79,10 +79,11 @@ class CRDTPeer(Node):
                 edit = self.receivedOperations.pop(0)
                 self.__currentText, self.__history = handle_new_edits(self.__currentText, edit, self.__history)
                 
-            if self.__debug:
-                print(f"{self.__nodeID} is updated to {self.__currentText} \n")
+            #if self.__debug:
+                #print(f"{self.__nodeID} is updated to {self.__currentText} \n")
 
             # insert one whole chunk
+            print(f"{self.__nodeID} starting")
             while len(self.__tokenisedReferenceName) > 0:
                 index = -1
                 #find the node id value inside current text
@@ -109,7 +110,7 @@ class CRDTPeer(Node):
                         editValue = (i+1)*step + self.__currentText[index+1][1]
                         edit = (setcommands.INSERT, editCharacter, editValue, self.__nodeID)
                         self.__currentText, self.__history = insert_operation(self.__currentText, edit, self.__history) # update local copy
-                        #time.sleep(round(random.uniform(0,5), 1)/1000)
+                        time.sleep(round(random.uniform(0,5), 1)/1000)
                         self.send_to_nodes(self, edit) # broadcast to all connected nodes
                 
                 if self.__debug:
@@ -137,7 +138,7 @@ class CRDTPeer(Node):
                                 print(f"{self.__nodeID} is deleting {self.__currentText[position+2]}")
                             edit = (setcommands.DELETE, self.__currentText[position+2][0], self.__currentText[position+2][1], self.__currentText[position+2][2])
                             self.__currentText, self.__history = delete_operation(self.__currentText, edit, self.__history) # update local copy
-                            #time.sleep(round(random.uniform(0,5), 1)/1000)
+                            time.sleep(round(random.uniform(0,5), 1)/1000)
                             self.send_to_nodes(self, edit) # broadcast to all connected nodes
                         if self.__debug:
                             print(f"{self.__nodeID} has completed deletion normally. Updated state {self.__currentText} \n")

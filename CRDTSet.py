@@ -11,7 +11,7 @@ import random
 from setutils import input_test_decision, check_completion, add_final_string, check_convergence, peer_convergence_values
 import matplotlib.pyplot as plt 
 
-DEBUG_MODE = 0 # 1 to debug
+DEBUG_MODE = 1 # 1 to debug
 HOST = '0.0.0.0'
 PORT_INIT = 8000
 DELAY = 1000 # Simulate internet delay between peers in ms
