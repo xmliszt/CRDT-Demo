@@ -8,7 +8,7 @@ Created on Sat Nov 21 14:32:49 2020
 from p2pnetwork.node import Node
 import time
 from threading import Thread
-from setutils import append_operations_for_edits, handle_new_edits, tokenise_reference_name, insert_operation, delete_operation, display_final_string
+from setutils import append_incoming_operations, handle_new_edits, tokenise_reference_name, insert_operation, delete_operation, display_final_string
 import random
 import setcommands
 
@@ -17,7 +17,7 @@ class CRDTPeer(Node):
 
     def __init__(self, host, port, nodeID):
         super(CRDTPeer, self).__init__(host, port, None)
-        self.__currentText = []
+        self._currentText = []
         self.__tokenisedReferenceName = []
         self.__referenceName = ""
         self.__deletingIndices = [] # indices to delete
@@ -29,11 +29,15 @@ class CRDTPeer(Node):
         self.__shutdown = False
         self.__debug = False
         self.__worker = Thread(target=self._check_operation_update)
-
+        
+    def name(self):
+        return self.__referenceName
 
     # when receiving messges from other nodes - builtin, check delete mode
     def node_message(self, node, data):
-        self.receivedOperations = append_operations_for_edits(self.receivedOperations, data)
+        print("node check", node)
+        print("data check", data)
+        self.receivedOperations = append_incoming_operations(self.receivedOperations, data)
         
     # initial update
     def update_debug(self, debug):
@@ -42,8 +46,8 @@ class CRDTPeer(Node):
     #initial update
     def start_node(self):
         self.__worker.start()
-        if self.__debug:
-            print(f"Node {self.__nodeID} started")
+        # if self.__debug:
+        #     print(f"Node {self.__nodeID} started")
 
     # initial update
     def update_reference_name(self, referenceNameString):
@@ -52,7 +56,8 @@ class CRDTPeer(Node):
         print(f"Node {self.__nodeID} has the name of {self.__referenceName}")
 
     def update_current_text(self, currentText):
-        self.__currentText = currentText
+        print(f"{self.__nodeID} currenttext received: {currentText}")
+        self._currentText = currentText
 
     # initial update
     def update_delete_status(self, deleteStatus, deletingList):
@@ -60,14 +65,14 @@ class CRDTPeer(Node):
         self.__deletingIndices = deletingList
         
     def display(self):
-        finalString = display_final_string(self.__currentText)
+        finalString = display_final_string(self._currentText)
         print(f"final {self.__nodeID} with {finalString} \n")
 
     def _check_operation_update(self):
         while True:
 
             time.sleep(round(random.uniform(0,5), 1))
-
+            #time.sleep(3)
             if self.shutdown:
                 break
 
@@ -78,14 +83,14 @@ class CRDTPeer(Node):
                 self.__currentText, self.__history = handle_new_edits(self.__currentText, edit, self.__history)
                 
             if self.__debug:
-                print(f"{self.__nodeID} is updated to {self.__currentText} \n")
+                print(f"{self.__nodeID} is updated to {self._currentText} \n")
 
             # insert one whole chunk
             while len(self.__tokenisedReferenceName) > 0:
                 index = -1
                 #find the node id value inside current text
-                for i in range(len(self.__currentText)):
-                   if self.__currentText[i][0] == str(self.__nodeID):
+                for i in range(len(self._currentText)):
+                   if self._currentText[i][0] == str(self.__nodeID):
                        index = i
                        break
 
@@ -94,24 +99,24 @@ class CRDTPeer(Node):
                 #     # TODO update the index value
                    
                 try:
-                    valueRange = self.__currentText[index+2][1] - self.__currentText[index+1][1]
+                    valueRange = self._currentText[index+2][1] - self._currentText[index+1][1]
                 except IndexError:
-                    valueRange = 1.0 - self.__currentText[index+1][1]
+                    valueRange = 1.0 - self._currentText[index+1][1]
                     
                 finally:  
                     step = valueRange/(len(self.__tokenisedReferenceName)+1)
                     length = len(self.__tokenisedReferenceName)
     
                     for i in range(length):
+                        print(f"{self.__nodeID} current state before insert {self._currentText}")
                         editCharacter = self.__tokenisedReferenceName.pop(0)
-                        editValue = (i+1)*step + self.__currentText[index+1][1]
+                        editValue = (i+1)*step + self._currentText[index+1][1]
                         edit = (setcommands.INSERT, editCharacter, editValue, self.__nodeID)
-                        self.__currentText, self.__history = insert_operation(self.__currentText, edit, self.__history) # update local copy
+                        self._currentText, self.__history = insert_operation(self._currentText, edit, self.__history) # update local copy
                         self.send_to_nodes(self, edit) # broadcast to all connected nodes
                 
                 if self.__debug:
-                    print(f"{self.__nodeID} has completed insertion. Updated state {self.__currentText} \n")
-
+                    print(f"{self.__nodeID} has completed insertion. Updated state {self._currentText} \n")
             
             # delete the respective strings
             while(self.__allowedToDelete and len(self.__deletingIndices) > 0):
@@ -121,7 +126,7 @@ class CRDTPeer(Node):
                 deleteIndex = self.__deletingIndices.pop(0)
                 nextIndex = deleteIndex + 1
                 for i in range(len(self.__currentText)):
-                    if self.__currentText[i][0] == str(deleteIndex):
+                    if self._currentText[i][0] == str(deleteIndex):
                         position = i
                         if self.__debug:
                             print(f"{self.__nodeID} has found the index string to delete at {position} \n")
@@ -129,11 +134,11 @@ class CRDTPeer(Node):
 
                 if position != None:
                     try:
-                        while self.__currentText[position+2][0] != str(nextIndex):
+                        while self._currentText[position+2][0] != str(nextIndex):
                             if self.__debug:
                                 print(f"{self.__nodeID} is deleting {self.__currentText[position+2]}")
-                            edit = (setcommands.DELETE, self.__currentText[position+2][0], self.__currentText[position+2][1], self.__currentText[position+2][2])
-                            self.__currentText, self.__history = delete_operation(self.__currentText, edit, self.__history) # update local copy
+                            edit = (setcommands.DELETE, self._currentText[position+2][0], self.__currentText[position+2][1], self.__currentText[position+2][2])
+                            self._currentText, self.__history = delete_operation(self._currentText, edit, self.__history) # update local copy
                             self.send_to_nodes(self, edit) # broadcast to all connected nodes
                         if self.__debug:
                             print(f"{self.__nodeID} has completed deletion normally. Updated state {self.__currentText} \n")
@@ -151,7 +156,8 @@ class CRDTPeer(Node):
                 self.completed = False
             else:
                 self.completed = True
-
+                
+                
     # stop node and terminate connections to all other nodes
     def stop(self):
         self.__worker.join()

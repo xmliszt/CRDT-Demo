@@ -17,6 +17,7 @@ class Peer(Node):
 
     # when receiving commands from other peers
     def node_message(self, node, data):
+        print("hello")
         self.operations = merge_operations(self.operations, data)
 
     def _check_operations_update(self):

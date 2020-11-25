@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Nov 10 23:02:31 2020
+Created on Wed Nov 25 21:33:58 2020
 
 @author: world
 """
 
 import time
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
-from CRDTPeer import CRDTPeer
+from uCRDTPeer import uCRDTPeer
 import random
 from random import randint
 from setutils import input_test_decision, check_completion
-import setcommands
 import copy
 
 DEBUG_MODE = 1 # 1 to debug
@@ -32,11 +29,6 @@ NAMES = ["James", "Mary", "John", "Patricia", "Robert",
          "Sarah", "Jason", "Kimberly", "Jeff", "Deborah"]
 PEER_STATUS = []
 
-
-def debug_log(msg):
-    if DEBUG_MODE:
-        print(f"[{datetime.now()}]: {msg}")
-          
 if __name__ == "__main__":
     # To set up all the peers
     while True:
@@ -46,37 +38,31 @@ if __name__ == "__main__":
         try:
             numberOfPeers = int(numberOfPeers)
         except ValueError:
-            # restart loop
             print("Integer!")
             continue 
         
-        # integer accepted
         if numberOfPeers < 2:
             print("At least 2 peers!")
             continue
         elif numberOfPeers > 50:
             print("Limit to less than 50 peers for demo purposes!")
             continue
-        
         break
         
     # number of peers accepted
     peers = [] # keep track of peers   
     
     for i in range(numberOfPeers):
-        p = CRDTPeer(HOST, PORT_INIT + i + 1, i+1)
+        p = uCRDTPeer(HOST, PORT_INIT + i + 1, i+1)
         peers.append(p)
-        #p.start()
         PEER_STATUS.append(False)
     
     # # set up p2p connection
-    # print("hello!!!", peers)
     for i in peers:
         for j in range(len(peers)):
             if i != peers[j]:
                 i.connect_with_node(HOST, PORT_INIT + j + 1)
                 
-            
     print(f"You have successfully set up {len(peers)} peers with id ranging from 1 to {numberOfPeers}")
     
     # get test decision
@@ -88,6 +74,7 @@ if __name__ == "__main__":
     
     originalString = testDecision[0]
     deletingIndices = testDecision[1]
+    decision = testDecision[2]
     
     if deletingIndices[0] != -1:
         nodesToHandleDeleting = [[], []]
@@ -101,15 +88,36 @@ if __name__ == "__main__":
         print("1 indices to delete", nodesToHandleDeleting[0])
         peers[1].update_delete_status(True, nodesToHandleDeleting[1])
         print("2 indices to delete", nodesToHandleDeleting[1])
+        
+    if decision == '1':
+        # send out the initial messages
+        for p in range(len(peers)):
+            peers[p].update_peers_list(peers)
+            peers[p].update_reference_name(NAMES[p])
+            peers[p].update_initial_local_text(copy.deepcopy(originalString))
+            if DEBUG_MODE:
+                peers[p].update_debug_mode(True)
+            peers[p].start()
+            
+        while True:
+            time.sleep(1)
+            if check_completion(peers, PEER_STATUS):
+                break
+        
+        for p in range(len(peers)):
+            peers[p].display()
+            peers[p].shutdown = True
+            peers[p].stop()        
 
     
     # send out the initial messages
     for p in range(len(peers)):
+        peers[p].update_peers_list(peers)
         peers[p].update_reference_name(NAMES[p])
-        peers[p].update_current_text(copy.deepcopy(originalString))
-        peers[p].start_node()
-        # if DEBUG_MODE:
-        #     peers[p].update_debug(True)
+        peers[p].update_initial_local_text(copy.deepcopy(originalString))
+        if DEBUG_MODE:
+            peers[p].update_debug_mode(True)
+        peers[p].start()
         
     while True:
         time.sleep(1)
@@ -120,11 +128,3 @@ if __name__ == "__main__":
         peers[p].display()
         peers[p].shutdown = True
         peers[p].stop()
-    
-    
-
-        
-    
-        
-    
-    
