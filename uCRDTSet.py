@@ -55,13 +55,20 @@ if __name__ == "__main__":
     for i in range(numberOfPeers):
         p = uCRDTPeer(HOST, PORT_INIT + i + 1, i+1)
         peers.append(p)
+        p.start()
         PEER_STATUS.append(False)
-    
-    # # set up p2p connection
-    for i in peers:
-        for j in range(len(peers)):
-            if i != peers[j]:
-                i.connect_with_node(HOST, PORT_INIT + j + 1)
+        if DEBUG_MODE == 1:
+            p.update_debug_mode(True)
+            
+    peers[0].connect_with_node(HOST, PORT_INIT + 2)
+    peers[1].connect_with_node(HOST, PORT_INIT + 1)    
+    peers[0].connect_with_node(HOST, PORT_INIT + 1)
+    peers[1].connect_with_node(HOST, PORT_INIT + 2)
+
+    # for i, p in enumerate(peers):
+    #     for idx in range(numberOfPeers):
+    #         if i != idx:
+    #             p.connect_with_node(HOST, PORT_INIT + idx + 1)
                 
     print(f"You have successfully set up {len(peers)} peers with id ranging from 1 to {numberOfPeers}")
     
@@ -88,36 +95,21 @@ if __name__ == "__main__":
         print("1 indices to delete", nodesToHandleDeleting[0])
         peers[1].update_delete_status(True, nodesToHandleDeleting[1])
         print("2 indices to delete", nodesToHandleDeleting[1])
-        
-    if decision == '1':
-        # send out the initial messages
-        for p in range(len(peers)):
-            peers[p].update_peers_list(peers)
-            peers[p].update_reference_name(NAMES[p])
-            peers[p].update_initial_local_text(copy.deepcopy(originalString))
-            if DEBUG_MODE:
-                peers[p].update_debug_mode(True)
-            peers[p].start()
-            
-        while True:
-            time.sleep(1)
-            if check_completion(peers, PEER_STATUS):
-                break
-        
-        for p in range(len(peers)):
-            peers[p].display()
-            peers[p].shutdown = True
-            peers[p].stop()        
 
     
     # send out the initial messages
     for p in range(len(peers)):
+        print("out", peers[p]._connectedOutboundPeers)
+        print("in", peers[p]._connectedInboundPeers)
         peers[p].update_peers_list(peers)
-        peers[p].update_reference_name(NAMES[p])
+        peers[p].update_reference_name(copy.deepcopy(NAMES[p]))
         peers[p].update_initial_local_text(copy.deepcopy(originalString))
-        if DEBUG_MODE:
-            peers[p].update_debug_mode(True)
-        peers[p].start()
+        #peers[p].start()
+            
+    peers[0].local_insertion()
+    for p in peers:
+        print("local")
+        print(p._localText)
         
     while True:
         time.sleep(1)
@@ -125,6 +117,6 @@ if __name__ == "__main__":
             break
     
     for p in range(len(peers)):
-        peers[p].display()
+        peers[p].display_final_string()
         peers[p].shutdown = True
         peers[p].stop()

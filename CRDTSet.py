@@ -16,7 +16,7 @@ from setutils import input_test_decision, check_completion
 import setcommands
 import copy
 
-DEBUG_MODE = 1 # 1 to debug
+DEBUG_MODE = 0 # 1 to debug
 HOST = '0.0.0.0'
 PORT_INIT = 8000
 DELAY = 1000 # Simulate internet delay between peers in ms
@@ -108,8 +108,8 @@ if __name__ == "__main__":
         peers[p].update_reference_name(NAMES[p])
         peers[p].update_current_text(copy.deepcopy(originalString))
         peers[p].start_node()
-        # if DEBUG_MODE:
-        #     peers[p].update_debug(True)
+        if DEBUG_MODE:
+            peers[p].update_debug(True)
         
     while True:
         time.sleep(1)

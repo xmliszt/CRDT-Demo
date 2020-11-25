@@ -26,30 +26,41 @@ class uCRDTPeer(Node):
     def  __init__(self, host, port, nodeID):
         super(uCRDTPeer, self).__init__(host, port, None)
         self._nodeID = nodeID
+        self.__shutdown = False
         self._debug = False
         self._referenceName = ""
         self._tokenisedReferenceName = []
         self._allowedToDelete = False
         self._indicesToDelete = []
         self._localText = []
-        self._localHistory = []
+        self._localHistory = [((0, 0, 0, 0), 0, True)]
         self._deleteBuffer = []
         self._allPeers = []
         #self._receivedOperations = []
         self._connectedOutboundPeers = []
         self._connectedInboundPeers = []
+        self._tripleStatus = [False, False, False]
         self._completed = False
-        self._worker = Thread(target=self.)
+        self._sleeping = False
+        # self._worker = Thread(target=self.refresh)
+        # self._worker.start()
         
-    # def start_node(self):
-    #     self._worker.start()
-    #     if self._debug:
-    #         print(f"Node {self._nodeID} has started \n")
+    def refresh(self):
+        if self._sleeping:
+            time.sleep(20)
+            self.request_reconnection()
+        self._tripleStatus[0] = True
+        self._tripleStatus[1] = self.local_deletion()
+        self._tripleStatus[2] = self.refresh_delete_buffer()
+        if all(x == True for x in self._tripleStatus):
+            self._completed = True         
 
     # builtin default
     # appends newly received remote operations into buffer for processing later
     def node_message(self, node, data):
+        print("HELLO!!!!")
         self._localText, self._localHistory, self._deleteBuffer = setutils.handle_new_edits(self._localText, data, self._localHistory, self._deleteBuffer)
+        self.refresh()
         #self._receivedOperations = setutils.append_incoming_operations(self._receivedOperations, data)
         if self._debug:
             print(f"Node {self._nodeID} has received a new operation: {data} from {node._nodeID} \n")
@@ -58,7 +69,8 @@ class uCRDTPeer(Node):
     # when this node connects with other node
     # appends new node to outbound connection for tracking
     def outbound_node_connected(self, node):
-        self._connectedOutboundPeers = setutils.add_outbound_connection(self._connectedOutboundPeers, node._nodeID)
+        print("out connected")
+        self._connectedOutboundPeers = setutils.add_outbound_connection(self._connectedOutboundPeers, node.id)
         if self._debug:
             print(f"Node {self._nodeID} has an outbound connection with {node._nodeID} \n")
 
@@ -78,7 +90,8 @@ class uCRDTPeer(Node):
     # when this node receives an inbound connection with other node
     # appends new node to inbound connection for tracking
     def inbound_node_connected(self, node):
-        self._connectedInboundPeers = setutils.add_inbound_connection(self._connectedInboundPeers, node._nodeID)
+        print("in connected")
+        self._connectedInboundPeers = setutils.add_inbound_connection(self._connectedInboundPeers, node.id)
         if self._debug:
             print(f"Node {self._nodeID} has an inbound connection with {node._nodeID} \n")
 
@@ -149,12 +162,11 @@ class uCRDTPeer(Node):
         self._localText = initialText
         if self._debug:
             print(f"Node {self._nodeID} has been given the initial text of {self._localText} \n")
-            
-            
+                
     # final
     # displays and returns the final local string for this node
     def display_final_string(self):
-        finalString = setutils.display_final_string(self._currentText)
+        finalString = setutils.display_final_string(self._localText)
         print(f"Node {self._nodeID} has the final string state of: {finalString} \n")
         return finalString
     
@@ -176,12 +188,13 @@ class uCRDTPeer(Node):
                 for i in range(length):
                     editCharacter = self._tokenisedReferenceName.pop(0)
                     editValue = (i+1)*step + self._localText[index+1][1]
-                    edit = (setcommands.INSERT, editCharacter, editValue, self._nodeID)
+                    edit = {"command": setcommands.INSERT, "character": editCharacter, "value": editValue, "nodeID": self._nodeID}
                     self._localText, self._localHistory = setutils.insert_operation(self._localText, edit, self._localHistory) # update local copy
-                    time.sleep(round(random.uniform(0,5), 1))
-                    self.send_to_nodes(self, edit) # broadcast to all connected nodes
-        if self.__debug:
+                    #time.sleep(round(random.uniform(0,5), 1))
+                    self.send_to_nodes(edit, []) # broadcast to all connected nodes
+        if self._debug:
             print(f"Node {self._nodeID} has completed insertion. Local text state: {self._localText} \n")
+        return True
             
     # if allowed to delete, remove the corresponding strings 
     # returns true if all the strings that is to be deleted has been removed, false if not
@@ -210,7 +223,7 @@ class uCRDTPeer(Node):
                     edit = (setcommands.DELETE, self._localText[position+2][0], self._localText[position+2][1], self._localText[position+2][2])
                     self._localText, self._localHistory = setutils.local_delete_operation(self._localText, edit, self._localHistory) # update local copy
                     time.sleep(round(random.uniform(0,5), 1))
-                    self.send_to_nodes(self, edit) # broadcast to all connected nodes         
+                    self.send_to_nodes(edit) # broadcast to all connected nodes         
                 self._indicesToDelete.remove(deleteIndex)
                 if self._debug:
                     print(f"Node {self._nodeID} has successfully deleted name belonging to {str(deleteIndex)} \n")
@@ -233,11 +246,10 @@ class uCRDTPeer(Node):
                         self._indicesToDelete.remove(deleteIndex)
                         if self._debug:
                             print(f"Node {self._nodeID} is unable delete string belonging to {str(deleteIndex)} as it has been previously deleted \n")
-                        continue
                     else: # no prior deletes found -> string not added yet
                         if self._debug:
                             print(f"Node {self._nodeID} is unable delete string as it has not been inserted yet \n")
-                        continue
+                continue
         
         if not self._indicesToDelete:
             return True
@@ -280,6 +292,22 @@ class uCRDTPeer(Node):
             return True
         else:
             return False
+        
+    # stop node and terminate connections to all other nodes
+    def stop(self):
+        #self._worker.join()
+        self.node_request_to_stop()
+        self.terminate_flag.set()
+
+    @property
+    # get shutdown status
+    def shutdown(self):
+        return self.__shutdown
+
+    @shutdown.setter
+    # changes the shutdown status
+    def shutdown(self, val):
+        self.__shutdown = val
                         
         '''
         local insert and delete both okay OKATY

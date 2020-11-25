@@ -45,7 +45,7 @@ if __name__ == "__main__":
         for idx in range(n):
             if i != idx:
                 p.connect_with_node(HOST, PORT_INIT + idx + 1)
-
+                
     if DEBUG:
         for i in peers:
             debug_log(i.all_nodes)

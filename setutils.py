@@ -54,21 +54,21 @@ def tokenise_reference_name(nameString):
     return tokenisedReferenceName
     
 # given the new edit, update the personal copy of the text
-# edit in the format of (action, character, ordered value, nodeid)
-# add to the local history of this node with the format of (edit, historyIndex, successStatus: boolean)
-# new edits added into the personal copy: (character, ordered value, nodeid)
+# edit in the format of {"command": setcommands.INSERT, "character": editCharacter, "value": editValue, "nodeID": self._nodeID}
+# add to the local history of this node with the format of (edit, historyIndex, boolean)
+# new edits added into the personal copy: (editCharacter, editValue, self._nodeID)
 def handle_new_edits(personalCopy, newEdit, history, deleteBuffer):
 
-    if newEdit[0] == setcommands.INSERT:
-        personalCopy.append((newEdit[1], newEdit[2], newEdit[3]))
+    if newEdit["command"] == setcommands.INSERT:
+        personalCopy.append((newEdit["character"], newEdit["value"], newEdit["nodeID"]))
         newHistoryIndex = history[-1][1] + 1
         history.append((newEdit, newHistoryIndex, True))
         
-    elif newEdit[0] == setcommands.DELETE:
+    elif newEdit["command"] == setcommands.DELETE:
         index = -1
         found = False
         for i in range(len(personalCopy)):
-            if personalCopy[i][0] == newEdit[1] and personalCopy[i][1] == newEdit[2]:
+            if personalCopy[i][0] == newEdit["character"] and personalCopy[i][1] == newEdit["value"]:
                 found = True
                 index = i
                 break
@@ -91,7 +91,7 @@ def handle_new_edits(personalCopy, newEdit, history, deleteBuffer):
     
 # handles local insertion operation
 def insert_operation(personalCopy, insertionEdit, history):
-    personalCopy.append((insertionEdit[1], insertionEdit[2], insertionEdit[3]))
+    personalCopy.append((insertionEdit["character"], insertionEdit["value"], insertionEdit["nodeID"]))
     newHistoryIndex = history[-1][1] + 1
     history.append((insertionEdit, newHistoryIndex, True))
         
@@ -104,7 +104,7 @@ def local_delete_operation(personalCopy, deletionEdit, history):
     index = -1
     found = False
     for i in range(len(personalCopy)):
-        if personalCopy[i][0] == deletionEdit[1] and personalCopy[i][1] == deletionEdit[2]:
+        if personalCopy[i][0] == deletionEdit["character"] and personalCopy[i][1] == deletionEdit["value"]:
             found = True
             index = i
             break
@@ -212,14 +212,10 @@ def input_test_decision(peers):
     else:
         pass
     
-def check_completion(peersList, peersStatusList, testMode):
-    if testMode == '1':
-        while True:
-            for i in peersList:
-                if i._tokenised
+def check_completion(peersList, peersStatusList):
     while True:
         for i in range(len(peersList)):
-            if peersList[i].completed:
+            if peersList[i]._completed:
                 peersStatusList[i] = True
             
         if all(x == True for x in peersStatusList):
