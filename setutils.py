@@ -222,4 +222,18 @@ def check_completion(peersList, peersStatusList):
             break
     return True
     
+# appends final string to array for final checking
+def add_final_string(peersFinalStringList, finalString):
+    peersFinalStringList.append(finalString)
+    return peersFinalStringList
+
+# given array of all local copies of every node, check for convergence
+def check_convergence(peersFinalStringList):
+    metric = peersFinalStringList[0]
+    status = True
+    for i in peersFinalStringList:
+        if i != metric:
+            status = False
+            break
+    return status
 

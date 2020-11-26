@@ -8,7 +8,7 @@ Created on Wed Nov 25 21:33:58 2020
 import time
 from uCRDTPeer import uCRDTPeer
 import random
-from setutils import input_test_decision, check_completion
+from setutils import input_test_decision, check_completion, add_final_string, check_convergence
 import copy
 
 DEBUG_MODE = 1 # 1 to debug
@@ -26,6 +26,7 @@ NAMES = ["James", "Mary", "John", "Patricia", "Robert",
          "Ronald", "Michelle", "Anthony", "Laura", "Kevin",
          "Sarah", "Jason", "Kimberly", "Jeff", "Deborah"]
 PEER_STATUS = []
+PEER_FINAL_STRING = []
 
 if __name__ == "__main__":
     # To set up all the peers
@@ -126,6 +127,10 @@ if __name__ == "__main__":
             break
     
     for p in range(len(peers)):
-        peers[p].display_final_string()
+        string = peers[p].display_final_string()
+        PEER_FINAL_STRING = add_final_string(PEER_FINAL_STRING, string)
         peers[p].shutdown = True
         peers[p].stop()
+        
+    convergence = check_convergence(PEER_FINAL_STRING)
+    print("Final convergence state:", convergence)
