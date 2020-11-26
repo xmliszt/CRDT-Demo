@@ -155,12 +155,12 @@ def input_test_decision(peers):
             value += step
             referenceTokenisedString.append((" ", value))
             value += step
-        return (referenceTokenisedString, [-1], -1)
+        return (referenceTokenisedString, [-1], -1, decision)
     
     elif decision == '2':
         
         while True:
-            numberOfSelectedIndices = input("Choose how many strings to delete:")
+            numberOfSelectedIndices = input("Choose how many strings to delete: ")
             if not numberOfSelectedIndices.isdigit():
                 print("Invalid input!")
                 continue
@@ -175,7 +175,7 @@ def input_test_decision(peers):
         for i in range(int(numberOfSelectedIndices)):
             deletingIndices.append(random.randint(1, len(peers)))
             
-        print("The following indices will be deleted:", deletingIndices)
+        print("The following indices will be deleted: ", deletingIndices)
         
         step = 0.9/(len(peers)*2)
         referenceTokenisedString = []
@@ -186,11 +186,11 @@ def input_test_decision(peers):
             referenceTokenisedString.append((" ", value))
             value += step
             
-        return (referenceTokenisedString, deletingIndices, -1)
+        return (referenceTokenisedString, deletingIndices, -1, decision)
     
     elif decision == '3':
         while True:
-            sleepingNode = input("Choose the node to sleep:")
+            sleepingNode = input("Choose the node to sleep: ")
             if not sleepingNode.isdigit():
                 print("Invalid input!")
                 continue
@@ -208,7 +208,7 @@ def input_test_decision(peers):
             value += step
             referenceTokenisedString.append((" ", value))
             value += step
-        return (referenceTokenisedString, [-1], sleepingNode)
+        return (referenceTokenisedString, [-1], int(sleepingNode), decision)
     else:
         pass
     

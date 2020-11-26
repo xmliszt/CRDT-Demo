@@ -3,7 +3,7 @@ from Peer import Peer
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from utils import get_operation, get_peer, print_peers_and_counter, get_number_of_concurrent_operations, thread_send_msg
+from utils import get_operation, get_peer, print_all_counters, get_number_of_concurrent_operations, thread_send_msg
 
 DEBUG = 0  # 1 to on debug, 0 to off debug
 HOST = '0.0.0.0'
@@ -42,10 +42,11 @@ if __name__ == "__main__":
 
     # set up p2p connection
     for i, p in enumerate(peers):
+        sleep(0.5)
         for idx in range(n):
             if i != idx:
                 p.connect_with_node(HOST, PORT_INIT + idx + 1)
-                
+
     if DEBUG:
         for i in peers:
             debug_log(i.all_nodes)
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     while True:
 
         sleep(DELAY / 1000)
-
+        print_all_counters(peers)
         _n = get_number_of_concurrent_operations(peers)
         operations = []
         active_peers = []

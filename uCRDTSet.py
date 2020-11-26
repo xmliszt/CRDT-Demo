@@ -6,15 +6,13 @@ Created on Wed Nov 25 21:33:58 2020
 """
 
 import time
-from datetime import datetime
 from uCRDTPeer import uCRDTPeer
 import random
-from random import randint
 from setutils import input_test_decision, check_completion
 import copy
 
 DEBUG_MODE = 1 # 1 to debug
-HOST = '0.0.0.0'
+HOST = '127.0.0.1'
 PORT_INIT = 8000
 DELAY = 1000 # Simulate internet delay between peers in ms
 NAMES = ["James", "Mary", "John", "Patricia", "Robert", 
@@ -32,7 +30,6 @@ PEER_STATUS = []
 if __name__ == "__main__":
     # To set up all the peers
     while True:
-        
         numberOfPeers = input("Enter the number of peers in the P2P network: ")
         
         try:
@@ -53,22 +50,18 @@ if __name__ == "__main__":
     peers = [] # keep track of peers   
     
     for i in range(numberOfPeers):
-        p = uCRDTPeer(HOST, PORT_INIT + i + 1, i+1)
+        p = uCRDTPeer(HOST, PORT_INIT + i + 1)
+        p.update_nodeID(i+1)
         peers.append(p)
         p.start()
         PEER_STATUS.append(False)
         if DEBUG_MODE == 1:
             p.update_debug_mode(True)
-            
-    peers[0].connect_with_node(HOST, PORT_INIT + 2)
-    peers[1].connect_with_node(HOST, PORT_INIT + 1)    
-    peers[0].connect_with_node(HOST, PORT_INIT + 1)
-    peers[1].connect_with_node(HOST, PORT_INIT + 2)
-
-    # for i, p in enumerate(peers):
-    #     for idx in range(numberOfPeers):
-    #         if i != idx:
-    #             p.connect_with_node(HOST, PORT_INIT + idx + 1)
+        
+    for i, p in enumerate(peers):
+        for idx in range(numberOfPeers):
+            if i != idx:
+                p.connect_with_node(HOST, PORT_INIT + idx + 1)
                 
     print(f"You have successfully set up {len(peers)} peers with id ranging from 1 to {numberOfPeers}")
     
@@ -81,7 +74,8 @@ if __name__ == "__main__":
     
     originalString = testDecision[0]
     deletingIndices = testDecision[1]
-    decision = testDecision[2]
+    sleepingNode = testDecision[2]
+    decision = testDecision[3]
     
     if deletingIndices[0] != -1:
         nodesToHandleDeleting = [[], []]
@@ -99,18 +93,33 @@ if __name__ == "__main__":
     
     # send out the initial messages
     for p in range(len(peers)):
-        print("out", peers[p]._connectedOutboundPeers)
-        print("in", peers[p]._connectedInboundPeers)
         peers[p].update_peers_list(peers)
         peers[p].update_reference_name(copy.deepcopy(NAMES[p]))
         peers[p].update_initial_local_text(copy.deepcopy(originalString))
-        #peers[p].start()
+        peers[p].update_test_decision(copy.deepcopy(decision))
+
+    # pure insertion
+    if decision == '1':
+        for p in peers:
+            p.local_insertion()
+            time.sleep(4)
             
-    peers[0].local_insertion()
-    for p in peers:
-        print("local")
-        print(p._localText)
+    elif decision == '2':
+        for p in peers:
+            p.local_insertion()
+            time.sleep(4)
+        peers[0].local_deletion()
+        time.sleep(4)
+        peers[1].local_deletion()
+        time.sleep(4)
         
+    elif decision == '3':
+        peers[sleepingNode-1].update_sleeping_status(True)
+        for p in peers:
+            p.local_insertion()
+            time.sleep(4)
+        peers[sleepingNode-1].update_sleeping_status(False)
+
     while True:
         time.sleep(1)
         if check_completion(peers, PEER_STATUS):
