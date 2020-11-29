@@ -48,15 +48,9 @@ class uCRDTPeer(Node):
         # self._worker.start()
         
     def refresh(self):
-        if self._testDecision == '1':
-            self._tripleStatus[1] = self.local_deletion()
-            self._tripleStatus[2] = self.refresh_delete_buffer()
-        elif self._testDecision == '2':
-            self._tripleStatus[2] = self.refresh_delete_buffer()
-        elif self._testDecision == '3':
-            self._tripleStatus[1] = self.local_deletion()
-            self._tripleStatus[2] = self.refresh_delete_buffer()
-        print(f"triple status of {self._nodeID}: {self._tripleStatus}")
+        self._tripleStatus[1] = self.local_deletion()
+        self._tripleStatus[2] = self.refresh_delete_buffer()
+        print(f"Node {self._nodeID} has triple status of {self._tripleStatus}")
         if all(x == True for x in self._tripleStatus):
             self._completed = True         
             
@@ -67,17 +61,16 @@ class uCRDTPeer(Node):
             self._localText, self._localHistory, self._deleteBuffer = setutils.handle_new_edits(self._localText, data, self._localHistory, self._deleteBuffer)
             self.refresh()
             #self._receivedOperations = setutils.append_incoming_operations(self._receivedOperations, data)
-            if self._debug:
-                print(f"Node {self._nodeID} has received a new operation: {data} from {node.id} \n")
+            # if self._debug:
+            #     print(f"Node {self._nodeID} has received a new operation: {data} from {node.id} \n")
 
     # builtin default
     # when this node connects with other node
     # appends new node to outbound connection for tracking
     def outbound_node_connected(self, node):
-        print("out connected")
         self._connectedOutboundPeers = setutils.add_outbound_connection(self._connectedOutboundPeers, node.id)
-        if self._debug:
-            print(f"Node {self._nodeID} has an outbound connection with {node.id} \n")
+        # if self._debug:
+        #     print(f"Node {self._nodeID} has an outbound connection with {node.id} \n")
 
 
     # builtin default
@@ -85,31 +78,30 @@ class uCRDTPeer(Node):
     # removes the outbound peer from buffer for tracking
     def outbound_node_disconnected(self, node):
         self._connectedOutboundPeers, outcome = setutils.remove_outbound_connection(self._connectedOutboundPeers, node._nodeID)
-        if self._debug:
-            if outcome:
-                print(f"Node {self._nodeID} has successfully closed an outbound connection to {node.id} \n")
-            else:
-                print(f"Node {self._nodeID} is unable to close an outbound connection to {node.id} as the connection does not exist \n")
+        # if self._debug:
+        #     if outcome:
+        #         print(f"Node {self._nodeID} has successfully closed an outbound connection to {node.id} \n")
+        #     else:
+        #         print(f"Node {self._nodeID} is unable to close an outbound connection to {node.id} as the connection does not exist \n")
 
     # builtin default
     # when this node receives an inbound connection with other node
     # appends new node to inbound connection for tracking
     def inbound_node_connected(self, node):
-        print("in connected")
         self._connectedInboundPeers = setutils.add_inbound_connection(self._connectedInboundPeers, node.id)
-        if self._debug:
-            print(f"Node {self._nodeID} has an inbound connection with {node.id} \n")
+        # if self._debug:
+        #     print(f"Node {self._nodeID} has an inbound connection with {node.id} \n")
 
     # builtin default
     # when this node is trying to close an inbound connection
     # removes the inbound peer from buffer for tracking
     def inbound_node_disconnected(self, node):
         self._connectedInboundPeers, outcome = setutils.remove_inbound_connection(self._connectedInboundPeers, node._nodeID)
-        if self._debug:
-            if outcome:
-                print(f"Node {self._nodeID} has successfully closed an inbound connection with {node.id} \n")
-            else:
-                print(f"Node {self._nodeID} is unable to close an inbound connection with {node.id} as the connection does not exist \n")
+        # if self._debug:
+        #     if outcome:
+        #         print(f"Node {self._nodeID} has successfully closed an inbound connection with {node.id} \n")
+        #     else:
+        #         print(f"Node {self._nodeID} is unable to close an inbound connection with {node.id} as the connection does not exist \n")
 
     # checks with all its inbound peers to update its localtext, localhistory and deletebuffer
     def request_reconnection(self):
@@ -134,22 +126,22 @@ class uCRDTPeer(Node):
     # assigns the node its local id
     def update_nodeID(self, nodeID):
         self._nodeID = nodeID
-        if self._debug:
-            print(f"Node has been assigned the id of {self._nodeID}")
+        # if self._debug:
+        #     print(f"Node has been assigned the id of {self._nodeID}")
     
     # initial
     # gives the peer communication access to other peers
     def update_peers_list(self, peers):
         self._allPeers = peers
-        if self._debug:
-            print(f"Node {self._nodeID} has received the list of other peers \n")
+        # if self._debug:
+        #     print(f"Node {self._nodeID} has received the list of other peers \n")
             
     # initial
     # updates the peer on the test condition
     def update_test_decision(self, testDecision):
         self._testDecision = testDecision
-        if self._debug:
-            print(f"Node {self._nodeID} has been informed of the test decision of {self._testDecision}")
+        # if self._debug:
+        #     print(f"Node {self._nodeID} has been informed of the test decision of {self._testDecision}")
         
     # initial
     # states if debug mode is True or False
@@ -188,10 +180,10 @@ class uCRDTPeer(Node):
         self._sleeping = sleepingStatus
         if self._sleeping:
             if self._debug:
-                print(f"Node {self._nodeID} has been designated to sleep!")
+                print(f"Node {self._nodeID} has been designated to disconnect!")
         else: 
             if self._debug:
-                print(f"Node {self._nodeID} has woken up with local text state of {self._localText}")
+                print(f"Node {self._nodeID} has is alive with local text state of {self._localText}")
             self.request_reconnection()
             if self._debug:
                 print(f"Node {self._nodeID} has requested local text updates to {self._localText}")
@@ -226,8 +218,8 @@ class uCRDTPeer(Node):
                         editValue = (i+1)*step + self._localText[index+1][1]
                         edit = {"command": setcommands.INSERT, "character": editCharacter, "value": editValue, "nodeID": self._nodeID}
                         self._localText, self._localHistory = setutils.insert_operation(self._localText, edit, self._localHistory) # update local copy
+                        time.sleep(round(random.uniform(0,5)/100, 1))
                         self.send_to_nodes(edit, exclude=self.nodes_inbound) # broadcast to all connected nodes
-                        time.sleep(round(random.uniform(0,5)/10, 1))
             if self._debug:
                 print(f"Node {self._nodeID} has completed insertion. Local text state: {self._localText} \n")
             self._tripleStatus[0]  = True
@@ -241,68 +233,71 @@ class uCRDTPeer(Node):
     # if allowed to delete, remove the corresponding strings 
     # returns true if all the strings that is to be deleted has been removed, false if not
     def local_deletion(self):
-        originalDeleteList = copy.deepcopy(self._indicesToDelete)
-        while self._allowedToDelete and len(originalDeleteList) > 0:
-            position = None
-            deleteIndex = originalDeleteList.pop(0)
-            nextIndex = deleteIndex + 1
-            status = -1 # checks if the string exists
-            for i in range(len(self._localText)):
-                if self._localText[i][0] == str(deleteIndex):
-                    position = i
-                    break
-            
-            try:
-                if self._localText[position+2][0] != str(nextIndex):
-                    status = 1 # string found, could be at the end
-                else:
-                    status = 0 # string not found and not at the end
-            except IndexError:
-                status = False # string not found and at the end
-             
-            # found string and not empty    
-            if status == 1:
+        if not self._sleeping:
+            originalDeleteList = copy.deepcopy(self._indicesToDelete)
+            while self._allowedToDelete and len(originalDeleteList) > 0:
+                position = None
+                deleteIndex = originalDeleteList.pop(0)
+                nextIndex = deleteIndex + 1
+                status = -1 # checks if the string exists
+                for i in range(len(self._localText)):
+                    if self._localText[i][0] == str(deleteIndex):
+                        position = i
+                        break
+                
                 try:
-                    while self._localText[position+2][0] != str(nextIndex):
-                        edit = {"command": setcommands.DELETE, "character": self._localText[position+2][0], "value": self._localText[position+2][1], "nodeID": self._localText[position+2][2]}
-                        self._localText, self._localHistory = setutils.local_delete_operation(self._localText, edit, self._localHistory) # update local copy
-                        self.send_to_nodes(edit, exclude=self.nodes_inbound) # broadcast to all connected nodes  
-                        time.sleep(round(random.uniform(0,5)/10, 1))                            
+                    if self._localText[position+2][0] != str(nextIndex):
+                        status = 1 # string found, could be at the end
+                    else:
+                        status = 0 # string not found and not at the end
                 except IndexError:
-                    pass
-                finally:
-                    self._indicesToDelete.remove(deleteIndex)
-                    if self._debug:
-                        print(f"Node {self._nodeID} has successfully deleted name belonging to {str(deleteIndex)} \n")
-                continue
-            
-            # string not found and not at the end
-            else:
-                startRange = self._localText[position+1][1]
-                try:
-                    endRange = self._localText[position+2][1]
-                except IndexError:
-                    endRange = 1.0
-                finally:
-                    previouslyDeleted = False
-                    for i in self._localHistory[::-1]:
-                        if i[0]["value"] > startRange and i[0]["value"] < endRange:
-                            previouslyDeleted = True
-                            break
-                    if previouslyDeleted: # has been deleted before
+                    status = False # string not found and at the end
+                 
+                # found string and not empty    
+                if status == 1:
+                    try:
+                        while self._localText[position+2][0] != str(nextIndex):
+                            edit = {"command": setcommands.DELETE, "character": self._localText[position+2][0], "value": self._localText[position+2][1], "nodeID": self._localText[position+2][2]}
+                            self._localText, self._localHistory = setutils.local_delete_operation(self._localText, edit, self._localHistory) # update local copy
+                            time.sleep(round(random.uniform(0,5)/10, 1))                            
+                            self.send_to_nodes(edit, exclude=self.nodes_inbound) # broadcast to all connected nodes  
+                    except IndexError:
+                        pass
+                    finally:
                         self._indicesToDelete.remove(deleteIndex)
                         if self._debug:
-                            print(f"Node {self._nodeID} is unable delete string belonging to {str(deleteIndex)} as it has been previously deleted \n")
-                    else: # no prior deletes found -> string not added yet
-                        if self._debug:
-                            print(f"Node {self._nodeID} is unable delete string as it has not been inserted yet \n")
-                continue
-        
-        if not self._indicesToDelete:
-            self._tripleStatus[1] = True
-            if all(x == True for x in self._tripleStatus):
-                self._completed = True    
-            return True
+                            print(f"Node {self._nodeID} has successfully deleted name belonging to {str(deleteIndex)} \n")
+                    continue
+                
+                # string not found and not at the end
+                else:
+                    startRange = self._localText[position+1][1]
+                    try:
+                        endRange = self._localText[position+2][1]
+                    except IndexError:
+                        endRange = 1.0
+                    finally:
+                        previouslyDeleted = False
+                        for i in self._localHistory[::-1]:
+                            if i[0]["value"] > startRange and i[0]["value"] < endRange:
+                                previouslyDeleted = True
+                                break
+                        if previouslyDeleted: # has been deleted before
+                            self._indicesToDelete.remove(deleteIndex)
+                            if self._debug:
+                                print(f"Node {self._nodeID} is unable delete string belonging to {str(deleteIndex)} as it has been previously deleted \n")
+                        else: # no prior deletes found -> string not added yet
+                            if self._debug:
+                                print(f"Node {self._nodeID} is unable delete string as it has not been inserted yet \n")
+                    continue
+            
+            if not self._indicesToDelete:
+                self._tripleStatus[1] = True
+                if all(x == True for x in self._tripleStatus):
+                    self._completed = True    
+                return True
+            else:
+                return False
         else:
             return False
         

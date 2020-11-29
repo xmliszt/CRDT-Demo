@@ -89,7 +89,6 @@ def handle_new_edits(personalCopy, newEdit, history, deleteBuffer):
     personalCopy.sort(key=lambda x: x[1])
     return personalCopy, history, deleteBuffer
     
-# handles local insertion operation
 def insert_operation(personalCopy, insertionEdit, history):
     personalCopy.append((insertionEdit["character"], insertionEdit["value"], insertionEdit["nodeID"]))
     newHistoryIndex = history[-1][1] + 1
@@ -99,7 +98,6 @@ def insert_operation(personalCopy, insertionEdit, history):
     personalCopy.sort(key=lambda x: x[1])
     return personalCopy, history
 
-# deletion edit has to be       
 def local_delete_operation(personalCopy, deletionEdit, history):
     index = -1
     found = False
@@ -128,12 +126,13 @@ def input_test_decision(peers):
       0. Exit test
       1. A string containing all the indices of the nodes. Each node will try to insert their own names behind their corresponding index.
       2. Similar to 1, but the selected indices will have their names deleted.
-      3. Choose one node to be put to long sleep during execution and awaken after a while, under the test situation of 1
+      3. Choose one node to be disconnected temporarily and reconnect after all other peers complete their execution, under the test situation of 1
+      4. Choose one node to be disconnected temporarily and reconnect after all other peers complete their execution, under the test situation of 2
       ''')
       
     decision = input("Your choice of test: ")
     try:
-        if decision not in ['0', '1', '2', '3']:
+        if decision not in ['0', '1', '2', '3', '4']:
             raise Exception 
     except Exception:
         print("Invalid decision!")
@@ -190,14 +189,14 @@ def input_test_decision(peers):
     
     elif decision == '3':
         while True:
-            sleepingNode = input("Choose the node to sleep: ")
+            sleepingNode = input("Choose the node to disconnect: ")
             if not sleepingNode.isdigit():
                 print("Invalid input!")
                 continue
             if int(sleepingNode) < 0 or int(sleepingNode) > len(peers):
                 print("Out of range!")
                 continue
-            print("The selected node will be put to sleep.")
+            print("The selected node will be disconnected temporarily.")
             break
         
         step = 0.9/(len(peers)*2)
@@ -209,6 +208,46 @@ def input_test_decision(peers):
             referenceTokenisedString.append((" ", value))
             value += step
         return (referenceTokenisedString, [-1], int(sleepingNode), decision)
+    
+    elif decision == '4':
+        
+        while True:
+            numberOfSelectedIndices = input("Choose how many strings to delete: ")
+            if not numberOfSelectedIndices.isdigit():
+                print("Invalid input!")
+                continue
+            if int(numberOfSelectedIndices) < 0 or int(numberOfSelectedIndices) > len(peers):
+                print("Out of range!")
+                continue
+            print("The test will randomly generate the indices to be deleted.")
+            break
+        
+        deletingIndices = []
+        for i in range(int(numberOfSelectedIndices)):
+            deletingIndices.append(random.randint(1, len(peers)))
+        
+        while True:
+            sleepingNode = input("Choose the node to disconnect: ")
+            if not sleepingNode.isdigit():
+                print("Invalid input!")
+                continue
+            if int(sleepingNode) < 0 or int(sleepingNode) > len(peers):
+                print("Out of range!")
+                continue
+            print("The selected node will be disconnected temporarily.")
+            break
+        
+        step = 0.9/(len(peers)*2)
+        referenceTokenisedString = []
+        value = 0.1
+        for i in range(len(peers)):
+            referenceTokenisedString.append((str(i+1), value))
+            value += step
+            referenceTokenisedString.append((" ", value))
+            value += step
+        return (referenceTokenisedString, deletingIndices, int(sleepingNode), decision)
+
+        
     else:
         pass
     

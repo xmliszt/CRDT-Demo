@@ -6,8 +6,8 @@ from functools import partial
 from utils import get_operation, get_peer, print_all_counters, get_number_of_concurrent_operations, thread_send_msg
 
 DEBUG = 0  # 1 to on debug, 0 to off debug
-HOST = '0.0.0.0'
-PORT_INIT = 8000
+HOST = '127.0.0.1'
+PORT_INIT = 9000
 DELAY = 1000  # Simulate internet delay from sender to receiver in ms
 
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     print(
         f"You have successfully set up {len(peers)} peers with id ranging from 1 to {n}"
     )
-    print("Each peer has a counter value initialized to be 0")
+    print("Each peer has a counter value initialized to be 1")
 
     while True:
 

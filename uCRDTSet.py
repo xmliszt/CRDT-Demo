@@ -120,6 +120,21 @@ if __name__ == "__main__":
             p.local_insertion()
             time.sleep(4)
         peers[sleepingNode-1].update_sleeping_status(False)
+        
+    elif decision == '4':
+        peers[sleepingNode-1].update_sleeping_status(True)
+        for p in peers:
+            p.local_insertion()
+            time.sleep(4)
+        peers[0].local_deletion()
+        time.sleep(4)
+        peers[1].local_deletion()
+        time.sleep(4)
+        peers[sleepingNode-1].update_sleeping_status(False)
+        peers[0].local_deletion()
+        time.sleep(4)
+        peers[1].local_deletion()
+        time.sleep(4)
 
     while True:
         time.sleep(1)

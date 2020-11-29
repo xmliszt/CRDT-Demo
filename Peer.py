@@ -8,7 +8,7 @@ from utils import merge_operations
 class Peer(Node):
     def __init__(self, host, port):
         super(Peer, self).__init__(host, port, None)
-        self.__counter = 0
+        self.__counter = 1
         self.operations = []
         self.__shutdown = False
         self.__worker = Thread(target=self._check_operations_update)
