@@ -1,12 +1,23 @@
 # CRDT-Demo
 
-50.012 Network Project - operation-based CRDT Demo
+50.012 Network Project - CRDT Demo
 
-## How to Run
+> This demo runs on python3
+
+## How to Run - Counter
 
 ```:bash
 virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python3 CRDTCounter.py
+python CRDTCounter.py
+```
+
+## How to Run - Ordered Set
+
+```:bash
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python uCRDTSet.py
 ```
